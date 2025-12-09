@@ -6,7 +6,7 @@ namespace VehicleImportSystem.Application.DTOs;
 /// Data transfer object representing the user's input for calculation.
 /// Contains all technical parameters required for tax formulas.
 /// </summary>
-public class CalculationRequest
+sealed public record CalculationRequest
 {
 
     /// <summary>

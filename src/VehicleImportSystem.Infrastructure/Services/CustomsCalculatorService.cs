@@ -94,7 +94,7 @@ public class CustomsCalculatorService : ICustomsCalculatorService
 
         return fuelType switch
         {
-            // BENZIN: Check against PetrolVolumeThreshold (3000)
+            // PETROL: Check against PetrolVolumeThreshold (3000)
             FuelType.Petrol when capacity <= _settings.PetrolVolumeThreshold
                 => _settings.PetrolRateSmall * volumeCoeff * age,
 

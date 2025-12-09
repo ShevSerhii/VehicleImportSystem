@@ -9,7 +9,7 @@ public enum FuelType
     /// <summary>
     /// Standard petrol (gasoline) engine.
     /// </summary>
-    Petrol = 1,
+    Petrol,
 
     /// <summary>
     /// Diesel engine.

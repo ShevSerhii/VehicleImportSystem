@@ -4,7 +4,7 @@
 /// Detailed calculation response sent back to the client.
 /// Contains tax breakdown, totals, and analytical comparison.
 /// </summary>
-public class CalculationResultDto
+public record CalculationResultDto
 {
 
     /// <summary>
