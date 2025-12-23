@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
+using VehicleImportSystem.Domain.Entities;
 using VehicleImportSystem.Domain.Enums;
 using VehicleImportSystem.Domain.Settings;
 
@@ -15,6 +16,7 @@ public class CustomsCalculatorService : ICustomsCalculatorService
     private readonly ICurrencyService _currencyService;
     private readonly IMarketPriceService _marketPriceService;
     private readonly CustomsSettings _settings;
+    private readonly IAppDbContext _context;
 
     /// <summary>
     /// Initializes a new instance of the service with required dependencies.
@@ -25,11 +27,13 @@ public class CustomsCalculatorService : ICustomsCalculatorService
     public CustomsCalculatorService(
         ICurrencyService currencyService,
         IMarketPriceService marketPriceService,
-        IOptions<CustomsSettings> settings)
+        IOptions<CustomsSettings> settings,
+        IAppDbContext context)
     {
         _currencyService = currencyService;
         _marketPriceService = marketPriceService;
         _settings = settings.Value; // Extracting the actual settings object
+        _context = context;
     }
 
     /// <inheritdoc />
@@ -63,6 +67,23 @@ public class CustomsCalculatorService : ICustomsCalculatorService
         decimal totalTaxes = duty + excise + vat + pensionFund;
         decimal turnkeyPrice = request.PriceInEur + totalTaxes;
         decimal profit = marketPriceEur - turnkeyPrice;
+
+        var record = new CalculationRecord
+        {
+            UserDeviceId = userDeviceId,
+            BrandId = request.MarkId,
+            ModelId = request.ModelId,
+            Year = request.Year,
+            FuelType = request.FuelType,
+            EngineCapacity = request.EngineCapacity,
+            PriceInEur = request.PriceInEur,
+            TotalTurnkeyPrice = turnkeyPrice,
+            PotentialProfit = profit,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.CalculationRecords.Add(record);
+        await _context.SaveChangesAsync(default);
 
         return new CalculationResultDto
         {

@@ -1,0 +1,42 @@
+﻿using Microsoft.EntityFrameworkCore;
+using VehicleImportSystem.Application.DTOs;
+using VehicleImportSystem.Application.Interfaces;
+using VehicleImportSystem.Application.Mappings;
+
+namespace VehicleImportSystem.Infrastructure.Services;
+
+/// <summary>
+/// Implementation of IBrandService for retrieving vehicle brand and model data from the database.
+/// </summary>
+public class BrandService : IBrandService
+{
+    private readonly IAppDbContext _context;
+
+    /// <summary>
+    /// Initializes a new instance of the BrandService.
+    /// </summary>
+    /// <param name="context">The database context for data access.</param>
+    public BrandService(IAppDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<BrandDto>> GetAllBrandsAsync(CancellationToken ct)
+    {
+        return await _context.CarBrands
+            .AsNoTracking()
+            .OrderBy(b => b.Name)
+            .Select(b => b.ToDto())
+            .ToListAsync(ct);
+    }
+
+    public async Task<List<ModelDto>> GetModelsByBrandIdAsync(int brandId, CancellationToken ct)
+    {
+        return await _context.CarModels
+            .AsNoTracking()
+            .Where(m => m.BrandId == brandId)
+            .OrderBy(m => m.Name)
+            .Select(m => m.ToDto())
+            .ToListAsync(ct);
+    }
+}

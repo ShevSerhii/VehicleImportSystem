@@ -1,3 +1,4 @@
+
 ﻿namespace VehicleImportSystem.Domain.Entities;
 
 /// <summary>
