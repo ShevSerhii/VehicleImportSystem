@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using VehicleImportSystem.API.Endpoints;
 using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
 using VehicleImportSystem.Domain.Settings;
 using VehicleImportSystem.Infrastructure;
+using VehicleImportSystem.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,21 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        await DbInitializer.InitializeAsync(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -28,9 +45,10 @@ app.MapPost("/api/calculator/calculate", async (
     [FromBody] CalculationRequest request,
     [FromServices] ICustomsCalculatorService calculatorService) =>
 {
-    // Simulate a User Device ID (in a real app, this comes from HTTP Headers)
-    // For now, we generate a random ID for testing purposes.
-    string userDeviceId = Guid.NewGuid().ToString();
+    // Use UserDeviceId from request if provided, otherwise generate a new one for testing
+    string userDeviceId = string.IsNullOrWhiteSpace(request.UserDeviceId)
+        ? Guid.NewGuid().ToString()
+        : request.UserDeviceId;
 
     var result = await calculatorService.CalculateAsync(request, userDeviceId);
 
@@ -55,5 +73,8 @@ app.MapGet("/api/currency/euro-rate", async (
 })
 .WithName("GetEuroRate")
 .WithOpenApi();
+
+app.MapBrandEndpoints();
+app.MapHistoryEndpoints();
 
 app.Run();

@@ -34,6 +34,9 @@ public static class DependencyInjection
         services.AddScoped<IMarketPriceService, MockMarketPriceService>();
         services.AddHostedService<CurrencyRateWarmupService>();
 
+        services.AddScoped<IBrandService, BrandService>();
+        services.AddScoped<IHistoryService, HistoryService>();
+
         return services;
     }
 }
