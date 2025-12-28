@@ -6,7 +6,7 @@ using VehicleImportSystem.Application.Interfaces;
 namespace VehicleImportSystem.Infrastructure.Services;
 
 /// <summary>
-/// Background service: warms up EUR rate on startup and then once per day via ICurrencyService.
+/// Background service: warms up EUR and USD rates on startup and then once per day via ICurrencyService.
 /// </summary>
 public class CurrencyRateWarmupService : BackgroundService
 {
@@ -43,8 +43,10 @@ public class CurrencyRateWarmupService : BackgroundService
 
         try
         {
-            var rate = await currencyService.GetEuroRateAsync();
-            _logger.LogInformation("Currency warmup complete. EUR rate: {Rate}", rate);
+            var eurRate = await currencyService.GetEuroRateAsync();
+            var usdRate = await currencyService.GetUsdRateAsync();
+
+            _logger.LogInformation("Currency warmup complete. EUR rate: {EurRate}, USD rate: {UsdRate}", eurRate, usdRate);
         }
         catch (Exception ex)
         {
@@ -52,4 +54,3 @@ public class CurrencyRateWarmupService : BackgroundService
         }
     }
 }
-

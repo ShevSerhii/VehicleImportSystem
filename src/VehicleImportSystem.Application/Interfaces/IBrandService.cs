@@ -14,12 +14,4 @@ public interface IBrandService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>List of all brands.</returns>
     Task<List<BrandDto>> GetAllBrandsAsync(CancellationToken ct);
-
-    /// <summary>
-    /// Retrieves all models for a specific brand, sorted alphabetically by name.
-    /// </summary>
-    /// <param name="brandId">The unique identifier of the brand.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>List of models for the specified brand.</returns>
-    Task<List<ModelDto>> GetModelsByBrandIdAsync(int brandId, CancellationToken ct);
 }

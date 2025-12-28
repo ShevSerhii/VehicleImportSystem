@@ -29,14 +29,4 @@ public class BrandService : IBrandService
             .Select(b => b.ToDto())
             .ToListAsync(ct);
     }
-
-    public async Task<List<ModelDto>> GetModelsByBrandIdAsync(int brandId, CancellationToken ct)
-    {
-        return await _context.CarModels
-            .AsNoTracking()
-            .Where(m => m.BrandId == brandId)
-            .OrderBy(m => m.Name)
-            .Select(m => m.ToDto())
-            .ToListAsync(ct);
-    }
 }

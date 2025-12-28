@@ -1,5 +1,4 @@
-
-﻿namespace VehicleImportSystem.Domain.Entities;
+namespace VehicleImportSystem.Domain.Entities;
 
 /// <summary>
 /// Represents a specific model belonging to a manufacturer (e.g., Golf, X5).

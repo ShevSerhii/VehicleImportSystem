@@ -19,8 +19,5 @@ public static class BrandEndpoints
 
         group.MapGet("/", async ([FromServices] IBrandService service, CancellationToken ct)
             => Results.Ok(await service.GetAllBrandsAsync(ct)));
-
-        group.MapGet("/{id}/models", async (int id, [FromServices] IBrandService service, CancellationToken ct)
-            => Results.Ok(await service.GetModelsByBrandIdAsync(id, ct)));
     }
 }

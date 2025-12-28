@@ -31,7 +31,7 @@ public static class DependencyInjection
         services.AddHttpClient();
 
         services.AddScoped<ICurrencyService, NbuCurrencyService>();
-        services.AddScoped<IMarketPriceService, MockMarketPriceService>();
+        services.AddScoped<IMarketPriceService, AutoRiaMarketPriceService>();
         services.AddHostedService<CurrencyRateWarmupService>();
 
         services.AddScoped<IBrandService, BrandService>();

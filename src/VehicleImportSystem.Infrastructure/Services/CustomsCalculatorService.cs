@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
 using VehicleImportSystem.Domain.Entities;
@@ -40,12 +41,14 @@ public class CustomsCalculatorService : ICustomsCalculatorService
     public async Task<CalculationResultDto> CalculateAsync(CalculationRequest request, string userDeviceId)
     {
         decimal euroRate = await _currencyService.GetEuroRateAsync();
+        decimal usdRate = await _currencyService.GetUsdRateAsync();
 
         decimal marketPriceUsd = await _marketPriceService.GetAveragePriceAsync(
             request.MarkId, request.ModelId, request.Year);
 
-        // Temporary conversion (USD -> EUR).
-        decimal marketPriceEur = marketPriceUsd * 0.95m; // TODO: Use real cross-rate later.
+        // Convert USD to EUR using cross-rate: EUR/USD = (EUR/UAH) / (USD/UAH)
+        decimal usdToEurRate = euroRate / usdRate;
+        decimal marketPriceEur = marketPriceUsd * usdToEurRate;
 
         // Electric vehicles pay 0% duty.
         decimal duty = (request.FuelType == FuelType.Electric)
@@ -68,16 +71,40 @@ public class CustomsCalculatorService : ICustomsCalculatorService
         decimal turnkeyPrice = request.PriceInEur + totalTaxes;
         decimal profit = marketPriceEur - turnkeyPrice;
 
+        // Validate that Brand and Model exist in database before saving
+        // If they don't exist, set to null to avoid foreign key constraint violations
+        int? validBrandId = null;
+        if (request.MarkId > 0)
+        {
+            var brandExists = await _context.CarBrands.AnyAsync(b => b.Id == request.MarkId);
+            if (brandExists)
+            {
+                validBrandId = request.MarkId;
+            }
+        }
+
+        int? validModelId = null;
+        if (request.ModelId > 0)
+        {
+            var modelExists = await _context.CarModels.AnyAsync(m => m.Id == request.ModelId);
+            if (modelExists)
+            {
+                validModelId = request.ModelId;
+            }
+        }
+
         var record = new CalculationRecord
         {
             UserDeviceId = userDeviceId,
-            BrandId = request.MarkId,
-            ModelId = request.ModelId,
+            BrandId = validBrandId,
+            ModelId = validModelId,
             Year = request.Year,
             FuelType = request.FuelType,
             EngineCapacity = request.EngineCapacity,
             PriceInEur = request.PriceInEur,
+            TotalCustomsCost = totalTaxes,
             TotalTurnkeyPrice = turnkeyPrice,
+            MarketPriceSnapshot = marketPriceEur,
             PotentialProfit = profit,
             CreatedAt = DateTime.UtcNow
         };
