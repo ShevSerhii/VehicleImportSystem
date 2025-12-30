@@ -6,7 +6,7 @@ namespace VehicleImportSystem.Application.DTOs;
 /// Data transfer object representing the user's input for calculation.
 /// Contains all technical parameters required for tax formulas.
 /// </summary>
-sealed public record CalculationRequest
+public sealed record CalculationRequest
 {
 
     /// <summary>
@@ -40,4 +40,10 @@ sealed public record CalculationRequest
     /// ID of the selected Model (from Auto.ria).
     /// </summary>
     public int ModelId { get; set; }
+
+    /// <summary>
+    /// Unique identifier of the user's device (UUID from LocalStorage).
+    /// Used to link calculation history to a guest user.
+    /// </summary>
+    public string UserDeviceId { get; set; } = string.Empty;
 }
