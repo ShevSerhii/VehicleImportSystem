@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
+using Polly.Extensions.Http;
 using VehicleImportSystem.Application.Interfaces;
 using VehicleImportSystem.Infrastructure.Data;
+using VehicleImportSystem.Infrastructure.Resilience;
 using VehicleImportSystem.Infrastructure.Services;
 
 namespace VehicleImportSystem.Infrastructure;
@@ -28,7 +31,22 @@ public static class DependencyInjection
 
         services.AddScoped<ICustomsCalculatorService, CustomsCalculatorService>();
 
+        // Configure HTTP clients with Polly resilience policies
         services.AddHttpClient();
+        
+        // Configure NBU API client with resilience policies
+        services.AddHttpClient("NbuApi", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+        })
+        .AddPolicyHandler(PollyPolicies.GetCombinedPolicy());
+
+        // Configure Auto.ria API client with resilience policies
+        services.AddHttpClient("AutoRiaApi", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+        })
+        .AddPolicyHandler(PollyPolicies.GetCombinedPolicy());
 
         services.AddScoped<ICurrencyService, NbuCurrencyService>();
         services.AddScoped<IMarketPriceService, AutoRiaMarketPriceService>();

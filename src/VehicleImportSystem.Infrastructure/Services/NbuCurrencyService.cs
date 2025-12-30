@@ -37,7 +37,7 @@ public class NbuCurrencyService : ICurrencyService
         IConfiguration configuration,
         IMemoryCache cache)
     {
-        _httpClient = httpClientFactory.CreateClient();
+        _httpClient = httpClientFactory.CreateClient("NbuApi");
         _dbContext = dbContext;
         _logger = logger;
         _cache = cache;

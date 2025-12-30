@@ -84,12 +84,35 @@ public class CustomsCalculatorService : ICustomsCalculatorService
         }
 
         int? validModelId = null;
-        if (request.ModelId > 0)
+        if (request.ModelId > 0 && validBrandId.HasValue)
         {
-            var modelExists = await _context.CarModels.AnyAsync(m => m.Id == request.ModelId);
-            if (modelExists)
+            var existingModel = await _context.CarModels
+                .FirstOrDefaultAsync(m => m.Id == request.ModelId);
+
+            if (existingModel != null)
             {
-                validModelId = request.ModelId;
+                validModelId = existingModel.Id;
+            }
+            else
+            {
+                // Model not found in DB. Fetch details from API to get the Name.
+                var modelsFromApi = await _marketPriceService.GetModelsFromApiAsync(request.MarkId);
+                var targetModelDto = modelsFromApi.FirstOrDefault(x => x.Id == request.ModelId);
+
+                if (targetModelDto != null)
+                {
+                    var newModel = new CarModel
+                    {
+                        Id = targetModelDto.Id,
+                        Name = targetModelDto.Name, // Save correct name from API
+                        BrandId = request.MarkId
+                    };
+
+                    _context.CarModels.Add(newModel);
+                    await _context.SaveChangesAsync(default);
+
+                    validModelId = newModel.Id;
+                }
             }
         }
 

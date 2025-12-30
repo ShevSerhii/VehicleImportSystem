@@ -20,6 +20,9 @@ builder.Services.AddCamelCaseJsonOptions();
 // Configure CORS for Angular frontend
 builder.Services.AddCorsForAngularApp();
 
+// Configure FluentValidation
+builder.Services.AddFluentValidation();
+
 var app = builder.Build();
 
 // Initialize database (migrations + seeding)

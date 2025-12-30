@@ -1,6 +1,8 @@
 using System.Text.Json;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VehicleImportSystem.Application.Validators;
 using VehicleImportSystem.Domain.Settings;
 
 namespace VehicleImportSystem.API.Extensions;
@@ -66,6 +68,17 @@ public static class ServiceCollectionExtensions
                       .AllowCredentials();
             });
         });
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Configures FluentValidation for request validation.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    public static IServiceCollection AddFluentValidation(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssemblyContaining<CalculationRequestValidator>();
         
         return services;
     }

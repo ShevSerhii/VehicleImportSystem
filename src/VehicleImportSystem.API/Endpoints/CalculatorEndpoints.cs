@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
@@ -25,11 +26,31 @@ public static class CalculatorEndpoints
         /// </summary>
         /// <param name="request">Calculation input parameters (vehicle details, price, etc.)</param>
         /// <param name="calculatorService">The customs calculator service instance.</param>
+        /// <param name="validator">The FluentValidation validator for the request.</param>
         /// <returns>Detailed calculation result with tax breakdown and profitability analysis.</returns>
         group.MapPost("/calculate", async (
             [FromBody] CalculationRequest request,
-            [FromServices] ICustomsCalculatorService calculatorService) =>
+            [FromServices] ICustomsCalculatorService calculatorService,
+            [FromServices] IValidator<CalculationRequest> validator) =>
         {
+            // Validate request
+            var validationResult = await validator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                return Results.BadRequest(new
+                {
+                    Message = "Input validation errors",
+                    Errors = errors
+                });
+            }
+
             // Use UserDeviceId from request if provided, otherwise generate a new one for testing
             string userDeviceId = string.IsNullOrWhiteSpace(request.UserDeviceId)
                 ? Guid.NewGuid().ToString()

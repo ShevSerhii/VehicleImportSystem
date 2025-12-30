@@ -24,12 +24,12 @@ public class AutoRiaMarketPriceService : IMarketPriceService
     private const int PassengerCarCategoryId = 1;
 
     public AutoRiaMarketPriceService(
-        HttpClient httpClient,
+        IHttpClientFactory httpClientFactory,
         IMemoryCache cache,
         IConfiguration configuration,
         ILogger<AutoRiaMarketPriceService> logger)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient("AutoRiaApi");
         _cache = cache;
         _logger = logger;
         _apiKey = configuration["AutoRia:ApiKey"]

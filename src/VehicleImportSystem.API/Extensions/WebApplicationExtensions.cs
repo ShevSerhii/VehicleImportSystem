@@ -1,3 +1,4 @@
+using VehicleImportSystem.API.Middleware;
 using VehicleImportSystem.Infrastructure.Data;
 
 namespace VehicleImportSystem.API.Extensions;
@@ -34,6 +35,9 @@ public static class WebApplicationExtensions
     /// <param name="app">The web application instance.</param>
     public static void ConfigureMiddleware(this WebApplication app)
     {
+        // Global exception handler must be first
+        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
         // Enable Swagger UI in development environment
         if (app.Environment.IsDevelopment())
         {
