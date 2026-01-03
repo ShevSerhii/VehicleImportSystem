@@ -57,7 +57,7 @@ public static class PollyPolicies
     public static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
     {
         return Policy.TimeoutAsync<HttpResponseMessage>(
-            timeout: TimeSpan.FromSeconds(10),
+            timeout: TimeSpan.FromSeconds(45),
             timeoutStrategy: TimeoutStrategy.Pessimistic);
     }
 

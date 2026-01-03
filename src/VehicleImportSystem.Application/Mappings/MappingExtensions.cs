@@ -37,8 +37,8 @@ public static class MappingExtensions
         {
             Id = entity.Id,
             Date = entity.CreatedAt,
-            BrandName = entity.Brand?.Name ?? "Unknown",
-            ModelName = entity.Model?.Name ?? "Unknown",
+            BrandName = entity.Brand?.Name,
+            ModelName = entity.Model?.Name,
             Year = entity.Year,
             PriceInEur = entity.PriceInEur,
             TotalTurnkeyPrice = entity.TotalTurnkeyPrice,

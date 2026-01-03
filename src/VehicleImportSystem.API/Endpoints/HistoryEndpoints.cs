@@ -17,9 +17,12 @@ public static class HistoryEndpoints
     {
         var group = app.MapGroup("/api/history").WithTags("History");
 
-        group.MapGet("/", async (string userDeviceId, [FromServices] IHistoryService service, CancellationToken ct) =>
+        group.MapGet("/", async ([FromHeader(Name = "X-Device-Id")] string userDeviceId, [FromServices] IHistoryService service, CancellationToken ct) =>
         {
-            if (string.IsNullOrWhiteSpace(userDeviceId)) return Results.BadRequest("DeviceId required");
+            // Перевірка на пустий заголовок
+            if (string.IsNullOrWhiteSpace(userDeviceId))
+                return Results.BadRequest("Header 'X-Device-Id' is required.");
+
             return Results.Ok(await service.GetUserHistoryAsync(userDeviceId, ct));
         });
 
@@ -28,9 +31,11 @@ public static class HistoryEndpoints
             return await service.DeleteRecordAsync(id, ct) ? Results.NoContent() : Results.NotFound();
         });
 
-        group.MapDelete("/clear", async (string userDeviceId, [FromServices] IHistoryService service, CancellationToken ct) =>
+        group.MapDelete("/clear", async ([FromHeader(Name = "X-Device-Id")] string userDeviceId, [FromServices] IHistoryService service, CancellationToken ct) =>
         {
-            if (string.IsNullOrWhiteSpace(userDeviceId)) return Results.BadRequest("DeviceId required");
+            if (string.IsNullOrWhiteSpace(userDeviceId))
+                return Results.BadRequest("Header 'X-Device-Id' is required.");
+
             await service.ClearUserHistoryAsync(userDeviceId, ct);
             return Results.NoContent();
         });

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
 
 namespace VehicleImportSystem.API.Endpoints;
@@ -42,7 +43,7 @@ public static class MarketEndpoints
             =>
         {
             var price = await service.GetAveragePriceAsync(markId, modelId, year);
-            return Results.Ok(new { priceUSD = price });
+            return Results.Ok(new AveragePriceDto { PriceUsd = price });
         });
     }
 }

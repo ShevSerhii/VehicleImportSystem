@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
 
 namespace VehicleImportSystem.API.Endpoints;
@@ -30,7 +31,7 @@ public static class CurrencyEndpoints
             {
                 var eurRate = await currencyService.GetEuroRateAsync();
                 var usdRate = await currencyService.GetUsdRateAsync();
-                return Results.Ok(new 
+                return Results.Ok(new CurrencyRatesDto
                 { 
                     Eur = eurRate, 
                     Usd = usdRate, 

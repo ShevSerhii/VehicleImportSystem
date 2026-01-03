@@ -29,6 +29,7 @@ public static class CalculatorEndpoints
         /// <param name="validator">The FluentValidation validator for the request.</param>
         /// <returns>Detailed calculation result with tax breakdown and profitability analysis.</returns>
         group.MapPost("/calculate", async (
+            [FromHeader(Name = "X-Device-Id")] string? headerDeviceId,
             [FromBody] CalculationRequest request,
             [FromServices] ICustomsCalculatorService calculatorService,
             [FromServices] IValidator<CalculationRequest> validator) =>
@@ -44,19 +45,27 @@ public static class CalculatorEndpoints
                         g => g.Select(e => e.ErrorMessage).ToArray()
                     );
 
-                return Results.BadRequest(new
+                return Results.BadRequest(new ValidationErrorDto
                 {
                     Message = "Input validation errors",
                     Errors = errors
                 });
             }
 
-            // Use UserDeviceId from request if provided, otherwise generate a new one for testing
-            string userDeviceId = string.IsNullOrWhiteSpace(request.UserDeviceId)
-                ? Guid.NewGuid().ToString()
-                : request.UserDeviceId;
+            // Validate device ID from header - required for request history
+            if (string.IsNullOrWhiteSpace(headerDeviceId))
+            {
+                return Results.BadRequest(new ValidationErrorDto
+                {
+                    Message = "Header 'X-Device-Id' is required.",
+                    Errors = new Dictionary<string, string[]>
+                    {
+                        { "X-Device-Id", new[] { "Header 'X-Device-Id' is required." } }
+                    }
+                });
+            }
 
-            var result = await calculatorService.CalculateAsync(request, userDeviceId);
+            var result = await calculatorService.CalculateAsync(request, headerDeviceId);
 
             return Results.Ok(result);
         })
@@ -64,4 +73,3 @@ public static class CalculatorEndpoints
         .WithOpenApi();
     }
 }
-

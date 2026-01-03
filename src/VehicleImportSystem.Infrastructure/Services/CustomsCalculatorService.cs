@@ -47,7 +47,7 @@ public class CustomsCalculatorService : ICustomsCalculatorService
             request.MarkId, request.ModelId, request.Year);
 
         // Convert USD to EUR using cross-rate: EUR/USD = (EUR/UAH) / (USD/UAH)
-        decimal usdToEurRate = euroRate / usdRate;
+        decimal usdToEurRate = usdRate / euroRate;
         decimal marketPriceEur = marketPriceUsd * usdToEurRate;
 
         // Electric vehicles pay 0% duty.
@@ -59,12 +59,10 @@ public class CustomsCalculatorService : ICustomsCalculatorService
 
         // Base = Price + Duty + Excise. EV pays 0% VAT.
         decimal vatBase = request.PriceInEur + duty + excise;
-        decimal vat = (request.FuelType == FuelType.Electric)
-            ? 0
-            : vatBase * _settings.VatRate;
+        decimal vat =  vatBase * _settings.VatRate;
 
         // Base includes VAT. Calculated in UAH based on thresholds.
-        decimal pensionBaseEur = request.PriceInEur + duty + excise + vat;
+        decimal pensionBaseEur = request.PriceInEur;
         decimal pensionFund = CalculatePensionFund(pensionBaseEur, euroRate);
 
         decimal totalTaxes = duty + excise + vat + pensionFund;
@@ -109,7 +107,6 @@ public class CustomsCalculatorService : ICustomsCalculatorService
                     };
 
                     _context.CarModels.Add(newModel);
-                    await _context.SaveChangesAsync(default);
 
                     validModelId = newModel.Id;
                 }
@@ -156,7 +153,7 @@ public class CustomsCalculatorService : ICustomsCalculatorService
     private decimal CalculateExcise(FuelType fuelType, int capacity, int year)
     {
         int currentYear = DateTime.UtcNow.Year;
-        int age = currentYear - year - 1;
+        int age = currentYear - year;
 
         if (age < 1) age = 1;
         if (age > _settings.MaxExciseAge) age = _settings.MaxExciseAge;
