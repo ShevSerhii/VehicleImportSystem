@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VehicleImportSystem.Domain.Entities;
+using VehicleImportSystem.Application.Mappings;
 using VehicleImportSystem.Infrastructure.DTOs;
 
 namespace VehicleImportSystem.Infrastructure.Data;
@@ -40,7 +41,7 @@ public static class DbInitializer
         if (File.Exists(filePath))
         {
             var jsonString = await File.ReadAllTextAsync(filePath);
-            var brandsDto = JsonSerializer.Deserialize<List<AutoRiaBrandSeedDto>>(jsonString);
+            var brandsDto = JsonSerializer.Deserialize<List<AutoRiaItemDto>>(jsonString);
 
             if (brandsDto != null && brandsDto.Any())
             {
@@ -50,11 +51,7 @@ public static class DbInitializer
 
                 var newBrands = brandsDto
                     .Where(dto => !existingBrandIds.Contains(dto.Value))
-                    .Select(dto => new CarBrand
-                    {
-                        Id = dto.Value,
-                        Name = dto.Name
-                    })
+                    .Select(dto => dto.ToEntity())
                     .ToList();
 
                 if (newBrands.Any())

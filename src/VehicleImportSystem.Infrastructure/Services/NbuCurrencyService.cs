@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using VehicleImportSystem.Application.Interfaces;
 using VehicleImportSystem.Domain.Entities;
+using VehicleImportSystem.Application.Mappings;
 
 namespace VehicleImportSystem.Infrastructure.Services;
 
@@ -99,12 +100,7 @@ public class NbuCurrencyService : ICurrencyService
             if (rate is null || rate <= 0)
                 throw new InvalidOperationException($"NBU response missing {currencyCode} rate.");
 
-            var entity = new CurrencyRate
-            {
-                CurrencyCode = currencyCode,
-                Rate = rate.Value,
-                ExchangeDate = today
-            };
+            var entity = rate.Value.ToEntity(currencyCode);
 
             _dbContext.CurrencyRates.Add(entity);
             await _dbContext.SaveChangesAsync(CancellationToken.None);

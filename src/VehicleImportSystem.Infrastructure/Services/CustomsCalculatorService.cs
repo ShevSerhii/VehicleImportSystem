@@ -5,6 +5,7 @@ using VehicleImportSystem.Application.Interfaces;
 using VehicleImportSystem.Domain.Entities;
 using VehicleImportSystem.Domain.Enums;
 using VehicleImportSystem.Domain.Settings;
+using VehicleImportSystem.Application.Mappings;
 
 namespace VehicleImportSystem.Infrastructure.Services;
 
@@ -99,12 +100,7 @@ public class CustomsCalculatorService : ICustomsCalculatorService
 
                 if (targetModelDto != null)
                 {
-                    var newModel = new CarModel
-                    {
-                        Id = targetModelDto.Id,
-                        Name = targetModelDto.Name, // Save correct name from API
-                        BrandId = request.MarkId
-                    };
+                    var newModel = targetModelDto.ToEntity(request.MarkId);
 
                     _context.CarModels.Add(newModel);
 
@@ -113,38 +109,30 @@ public class CustomsCalculatorService : ICustomsCalculatorService
             }
         }
 
-        var record = new CalculationRecord
-        {
-            UserDeviceId = userDeviceId,
-            BrandId = validBrandId,
-            ModelId = validModelId,
-            Year = request.Year,
-            FuelType = request.FuelType,
-            EngineCapacity = request.EngineCapacity,
-            PriceInEur = request.PriceInEur,
-            TotalCustomsCost = totalTaxes,
-            TotalTurnkeyPrice = turnkeyPrice,
-            MarketPriceSnapshot = marketPriceEur,
-            PotentialProfit = profit,
-            CreatedAt = DateTime.UtcNow
-        };
+        var record = request.ToEntity(
+            userDeviceId,
+            validBrandId,
+            validModelId,
+            totalTaxes,
+            turnkeyPrice,
+            profit,
+            marketPriceEur
+        );
 
         _context.CalculationRecords.Add(record);
         await _context.SaveChangesAsync(default);
 
-        return new CalculationResultDto
-        {
-            ImportDuty = duty,
-            ExciseTax = excise,
-            Vat = vat,
-            PensionFund = pensionFund,
-            TotalCustomsClearance = totalTaxes,
-            TotalVehicleCost = turnkeyPrice,
-            MarketPrice = marketPriceEur,
-            PotentialProfit = profit,
-            IsProfitable = profit > 0,
-            CurrencyRateUsed = euroRate
-        };
+        return request.ToResultDto(
+            duty,
+            excise,
+            vat,
+            pensionFund,
+            totalTaxes,
+            turnkeyPrice,
+            marketPriceEur,
+            profit,
+            euroRate
+        );
     }
 
     /// <summary>

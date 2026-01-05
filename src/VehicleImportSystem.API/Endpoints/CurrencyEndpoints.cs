@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
+using VehicleImportSystem.Application.Mappings;
 
 namespace VehicleImportSystem.API.Endpoints;
 
@@ -31,12 +32,8 @@ public static class CurrencyEndpoints
             {
                 var eurRate = await currencyService.GetEuroRateAsync();
                 var usdRate = await currencyService.GetUsdRateAsync();
-                return Results.Ok(new CurrencyRatesDto
-                { 
-                    Eur = eurRate, 
-                    Usd = usdRate, 
-                    Date = DateTime.UtcNow.ToString("O") // ISO 8601 format
-                });
+
+                return Results.Ok((eurRate, usdRate).ToDto());
             }
             catch (Exception ex)
             {

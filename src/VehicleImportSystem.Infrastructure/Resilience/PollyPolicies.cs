@@ -52,7 +52,7 @@ public static class PollyPolicies
 
     /// <summary>
     /// Timeout policy to prevent hanging requests.
-    /// Times out after 10 seconds.
+    /// Times out after 45 seconds.
     /// </summary>
     public static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
     {

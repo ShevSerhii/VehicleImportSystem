@@ -6,7 +6,7 @@ namespace VehicleImportSystem.Infrastructure.DTOs;
 /// Data transfer object for deserializing Auto.ria brand seed data from JSON.
 /// Used during database initialization to populate the CarBrands table.
 /// </summary>
-public record AutoRiaBrandSeedDto
+public record AutoRiaItemDto
 {
     /// <summary>
     /// Brand name from Auto.ria API.

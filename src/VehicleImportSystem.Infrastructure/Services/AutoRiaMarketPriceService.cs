@@ -5,7 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
+using VehicleImportSystem.Infrastructure.DTOs;
 using VehicleImportSystem.Infrastructure.Services.AutoRia;
+using VehicleImportSystem.Application.Mappings;
 
 namespace VehicleImportSystem.Infrastructure.Services;
 
@@ -62,10 +64,12 @@ public class AutoRiaMarketPriceService : IMarketPriceService
 
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<List<AutoRiaModelResponse>>(url);
+                var response = await _httpClient.GetFromJsonAsync<List<AutoRiaItemDto>>(url);
 
-                return response?.Select(x => new ModelDto(x.Value, x.Name, markId)).ToList()
-                       ?? new List<ModelDto>();
+                return response?
+                        .Select(x => x.ToDto(markId))
+                        .ToList()
+                        ?? new List<ModelDto>();
             }
             catch (Exception ex)
             {

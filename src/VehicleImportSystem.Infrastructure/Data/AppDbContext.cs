@@ -17,7 +17,7 @@ public class AppDbContext : DbContext, IAppDbContext
     public DbSet<CarBrand> CarBrands { get; set; }
     public DbSet<CarModel> CarModels { get; set; }
     public DbSet<CurrencyRate> CurrencyRates { get; set; }
-    public DbSet<CalculationRecord> CalculationRecords { get; set; }
+    public DbSet<CustomsCalculation> CalculationRecords { get; set; }
 
     /// <summary>
     /// Configures the model building process.

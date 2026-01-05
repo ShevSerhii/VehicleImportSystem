@@ -3,7 +3,7 @@ namespace VehicleImportSystem.Application.DTOs;
 /// <summary>
 /// Data transfer object representing average market price response.
 /// </summary>
-public class AveragePriceDto
+public record AveragePriceDto
 {
     /// <summary>
     /// Average market price in USD.

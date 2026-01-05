@@ -8,9 +8,9 @@ namespace VehicleImportSystem.Infrastructure.Data.Configurations;
 /// EF Core configuration for the Calculation History table.
 /// Includes indexes for performance optimization and decimal precision settings.
 /// </summary>
-public class CalculationRecordConfiguration : IEntityTypeConfiguration<CalculationRecord>
+public class CustomsCalculationConfiguration : IEntityTypeConfiguration<CustomsCalculation>
 {
-    public void Configure(EntityTypeBuilder<CalculationRecord> builder)
+    public void Configure(EntityTypeBuilder<CustomsCalculation> builder)
     {
         builder.HasKey(e => e.Id);
 

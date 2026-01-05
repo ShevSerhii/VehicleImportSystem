@@ -19,7 +19,6 @@ public static class HistoryEndpoints
 
         group.MapGet("/", async ([FromHeader(Name = "X-Device-Id")] string userDeviceId, [FromServices] IHistoryService service, CancellationToken ct) =>
         {
-            // Перевірка на пустий заголовок
             if (string.IsNullOrWhiteSpace(userDeviceId))
                 return Results.BadRequest("Header 'X-Device-Id' is required.");
 
