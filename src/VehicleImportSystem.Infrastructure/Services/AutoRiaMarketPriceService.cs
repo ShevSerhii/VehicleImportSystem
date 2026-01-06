@@ -5,9 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
+using VehicleImportSystem.Domain.Enums;
 using VehicleImportSystem.Infrastructure.DTOs;
-using VehicleImportSystem.Infrastructure.Services.AutoRia;
 using VehicleImportSystem.Application.Mappings;
+using VehicleImportSystem.Infrastructure.Services.AutoRia;
 
 namespace VehicleImportSystem.Infrastructure.Services;
 
@@ -83,23 +84,24 @@ public class AutoRiaMarketPriceService : IMarketPriceService
     }
 
     /// <summary>
-    /// Retrieves the average market price for a specific car model and year.
+    /// Retrieves the average market price for a specific car model, year and fuel type.
     /// Uses InterQuartileMean to filter out outliers.
-    /// Results are cached to avoid API Rate Limits (429).
     /// </summary>
-    public async Task<decimal> GetAveragePriceAsync(int markId, int modelId, int year)
+    public async Task<decimal> GetAveragePriceAsync(int markId, int modelId, int year, FuelType fuelType)
     {
-        string cacheKey = $"avg_price_{markId}_{modelId}_{year}";
+        string cacheKey = $"avg_price_{markId}_{modelId}_{year}_{fuelType}";
 
         return await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
             // Market prices are stable, cache for 24 hours
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24);
 
-            _logger.LogInformation("Fetching average price for Mark: {Mark}, Model: {Model}, Year: {Year}...", markId, modelId, year);
+            _logger.LogInformation(
+                "Fetching average price -> Mark: {Mark}, Model: {Model}, Year: {Year}, Fuel: {Fuel}...",
+                markId, modelId, year, fuelType.ToString() ?? "All");
 
-            // Correct URL with category_id and average_price endpoint
-            var url = $"https://developers.ria.com/auto/average_price?api_key={_apiKey}&category_id={PassengerCarCategoryId}&marka_id={markId}&model_id={modelId}&yers={year}";
+            // Build the base URL
+            var url = $"https://developers.ria.com/auto/average_price?api_key={_apiKey}&category_id={PassengerCarCategoryId}&marka_id={markId}&model_id={modelId}&yers={year}&fuel_id={fuelType}";
 
             try
             {
@@ -124,7 +126,7 @@ public class AutoRiaMarketPriceService : IMarketPriceService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching average price for {Mark}/{Model}/{Year}", markId, modelId, year);
+                _logger.LogError(ex, "Error fetching average price for {Mark}/{Model}/{Year}/{FuelType}", markId, modelId, year, fuelType);
                 return 0m;
             }
         });

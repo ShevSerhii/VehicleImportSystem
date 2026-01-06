@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Application.Interfaces;
+using VehicleImportSystem.Domain.Enums;
 
 namespace VehicleImportSystem.API.Endpoints;
 
@@ -33,16 +34,20 @@ public static class MarketEndpoints
         /// <param name="markId">The unique identifier of the vehicle brand.</param>
         /// <param name="modelId">The unique identifier of the vehicle model.</param>
         /// <param name="year">The manufacturing year of the vehicle.</param>
+        /// <param name="fuelType">The type of fuel (1=Petrol, 2=Diesel, etc.).</param>
         /// <param name="service">The market price service instance.</param>
         /// <returns>Average market price in USD.</returns>
         group.MapGet("/average-price", async (
             [FromQuery] int markId,
             [FromQuery] int modelId,
             [FromQuery] int year,
+            [FromQuery] FuelType fuelType,
             [FromServices] IMarketPriceService service)
             =>
         {
-            var price = await service.GetAveragePriceAsync(markId, modelId, year);
+            // Now passing fuelType to the service
+            var price = await service.GetAveragePriceAsync(markId, modelId, year, fuelType);
+
             return Results.Ok(new AveragePriceDto { PriceUsd = price });
         });
     }
