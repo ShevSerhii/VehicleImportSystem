@@ -1,4 +1,6 @@
-﻿namespace VehicleImportSystem.Domain.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace VehicleImportSystem.Domain.Entities;
 
 /// <summary>
 /// Represents a vehicle manufacturer (e.g., Volkswagen, BMW).
@@ -9,6 +11,7 @@ public class CarBrand
     /// Unique identifier synchronized with the external Auto.ria system.
     /// This ID is manually assigned, not auto-generated.
     /// </summary>
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int Id { get; set; }
 
     /// <summary>

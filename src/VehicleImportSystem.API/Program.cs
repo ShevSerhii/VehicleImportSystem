@@ -1,47 +1,41 @@
-using Microsoft.AspNetCore.Mvc;
-using VehicleImportSystem.Application.DTOs;
-using VehicleImportSystem.Application.Interfaces;
-using VehicleImportSystem.Domain.Settings;
-using VehicleImportSystem.Infrastructure.Services;
+using VehicleImportSystem.API.Endpoints;
+using VehicleImportSystem.API.Extensions;
+using VehicleImportSystem.Infrastructure;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<CustomsSettings>(
-    builder.Configuration.GetSection("CustomsSettings"));
+// Configure application settings
+builder.Services.AddApplicationSettings(builder.Configuration);
 
-builder.Services.AddScoped<ICustomsCalculatorService, CustomsCalculatorService>();
+// Register all infrastructure services (DbContext, Services, etc.)
+builder.Services.AddInfrastructure(builder.Configuration);
 
-// We use these "fake" services to make the app runnable without real external APIs.
-// In the future, we will swap them for RealCurrencyService and AutoRiaService.
-builder.Services.AddScoped<ICurrencyService, MockCurrencyService>();
-builder.Services.AddScoped<IMarketPriceService, MockMarketPriceService>();
+// Configure API documentation
+builder.Services.AddApiDocumentation();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Configure JSON serialization (camelCase for frontend compatibility)
+builder.Services.AddCamelCaseJsonOptions();
+
+// Configure CORS for Angular frontend
+builder.Services.AddCorsForAngularApp();
+
+// Configure FluentValidation
+builder.Services.AddFluentValidation();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Initialize database (migrations + seeding)
+await app.InitializeDatabaseAsync();
 
-app.UseHttpsRedirection();
+// Configure middleware pipeline
+app.ConfigureMiddleware();
 
-app.MapPost("/api/calculator/calculate", async (
-    [FromBody] CalculationRequest request,
-    [FromServices] ICustomsCalculatorService calculatorService) =>
-{
-    // Simulate a User Device ID (in a real app, this comes from HTTP Headers)
-    // For now, we generate a random ID for testing purposes.
-    string userDeviceId = Guid.NewGuid().ToString();
-
-    var result = await calculatorService.CalculateAsync(request, userDeviceId);
-
-    return Results.Ok(result);
-})
-.WithName("CalculateCustoms")
-.WithOpenApi();
+// Map API endpoints
+app.MapCalculatorEndpoints();
+app.MapCurrencyEndpoints();
+app.MapBrandEndpoints();
+app.MapHistoryEndpoints();
+app.MapMarketEndpoints();
 
 app.Run();

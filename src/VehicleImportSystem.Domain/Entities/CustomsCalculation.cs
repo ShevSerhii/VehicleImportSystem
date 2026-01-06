@@ -6,7 +6,7 @@ namespace VehicleImportSystem.Domain.Entities;
 /// Represents a historical record of a customs calculation performed by a user.
 /// Contains a snapshot of input data, selected vehicle, and calculated financial results.
 /// </summary>
-public class CalculationRecord
+public class CustomsCalculation
 {
     /// <summary>
     /// Unique identifier for the calculation record.
@@ -28,7 +28,7 @@ public class CalculationRecord
     /// <summary>
     /// Foreign Key to the selected Brand.
     /// </summary>
-    public int BrandId { get; set; }
+    public int? BrandId { get; set; }
 
     /// <summary>
     /// Navigation property to the Brand entity.
@@ -38,7 +38,7 @@ public class CalculationRecord
     /// <summary>
     /// Foreign Key to the selected Model.
     /// </summary>
-    public int ModelId { get; set; }
+    public int? ModelId { get; set; }
 
     /// <summary>
     /// Navigation property to the Model entity.

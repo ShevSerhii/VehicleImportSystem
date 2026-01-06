@@ -17,7 +17,7 @@ public enum FuelType
     Diesel,
 
     /// <summary>
-    /// Fully electric vehicle (BEV). Has 0% customs duty and VAT.
+    /// Fully electric vehicle (BEV).
     /// </summary>
     Electric,
 
