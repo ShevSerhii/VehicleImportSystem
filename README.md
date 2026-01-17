@@ -29,7 +29,7 @@ The system goes beyond tax calculation to answer the question: *"Is this import 
 * **Guest Mode:** History tracking without mandatory user registration (utilizing device identifiers).
 * **Visualization:** Graphical representation of the cost structure (charts), highlighting the tax share in the final price.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 The project is built upon **Clean Architecture** principles to ensure flexibility, testability, and loose coupling of external services.
 
@@ -38,35 +38,3 @@ The project is built upon **Clean Architecture** principles to ensure flexibilit
 * **Data Persistence:** MS SQL Server + Entity Framework Core.
 * **Configuration:** Options Pattern (strict typing for financial parameters).
 * **API Documentation:** Swagger / OpenAPI.
-
-## Roadmap
-
-### Sprint 1: Foundation & Core (Completed)
-*Goal: Establish architecture and implement tax calculation logic.*
-- [x] Clean Architecture setup.
-- [x] Domain layer development (Entities, Enums, Settings).
-- [x] Core calculation service implementation (`CustomsCalculatorService`).
-- [x] Configuration setup via `appsettings.json` (Options Pattern).
-- [x] Mock services for Currency and Market API (to save API limits).
-
-### Sprint 2: Data & Infrastructure (In Progress)
-*Goal: Connect the database and real data sources.*
-- [ ] **Entity Framework Core** setup.
-- [ ] Database structure creation (Code First Migrations).
-- [ ] History saving implementation (Snapshot pattern).
-- [ ] Real integration with **NBU API**.
-- [ ] Real integration with **AUTO.RIA API**.
-
-### Sprint 3: Basic Interface (Frontend Basic)
-*Goal: Create a functional client application.*
-- [ ] **Angular** project initialization.
-- [ ] UI library setup (Angular Material).
-- [ ] Input form development.
-- [ ] Integration with .NET API (HTTP Client).
-
-### Sprint 4: Analytics & Visualization (Frontend Polish)
-*Goal: Finalize the product for defense.*
-- [ ] Chart implementation (Chart.js / ng2-charts).
-- [ ] "Savings" analytics block (UI logic).
-- [ ] "Calculation History" page.
-- [ ] Final testing and polishing.
