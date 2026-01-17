@@ -21,7 +21,7 @@ public class BrandService : IBrandService
         _context = context;
     }
 
-    public async Task<List<BrandDto>> GetAllBrandsAsync(CancellationToken ct)
+    public async Task<IEnumerable<BrandDto>> GetAllBrandsAsync(CancellationToken ct)
     {
         return await _context.CarBrands
             .AsNoTracking()

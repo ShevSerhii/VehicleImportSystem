@@ -24,9 +24,7 @@ public static class DbInitializer
     {
         await context.Database.MigrateAsync();
 
-
         var buildDir = AppContext.BaseDirectory;
-
         var filePath = Path.Combine(buildDir, "Data", "Seeds", "brands.json");
 
         if (!File.Exists(filePath))
@@ -43,7 +41,7 @@ public static class DbInitializer
             var jsonString = await File.ReadAllTextAsync(filePath);
             var brandsDto = JsonSerializer.Deserialize<List<AutoRiaItemDto>>(jsonString);
 
-            if (brandsDto != null && brandsDto.Any())
+            if (brandsDto is not null && brandsDto.Any())
             {
                 var existingBrandIds = await context.CarBrands
                     .Select(b => b.Id)

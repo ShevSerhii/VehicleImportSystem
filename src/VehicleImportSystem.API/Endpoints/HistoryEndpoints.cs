@@ -36,6 +36,7 @@ public static class HistoryEndpoints
                 return Results.BadRequest("Header 'X-Device-Id' is required.");
 
             await service.ClearUserHistoryAsync(userDeviceId, ct);
+
             return Results.NoContent();
         });
     }

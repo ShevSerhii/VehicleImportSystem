@@ -15,6 +15,11 @@ public class GlobalExceptionHandlerMiddleware
     private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
     private readonly IWebHostEnvironment _environment;
 
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public GlobalExceptionHandlerMiddleware(
         RequestDelegate next,
         ILogger<GlobalExceptionHandlerMiddleware> logger,
@@ -41,6 +46,7 @@ public class GlobalExceptionHandlerMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
+
         var response = new ErrorResponseDto
         {
             Path = context.Request.Path,
@@ -50,7 +56,7 @@ public class GlobalExceptionHandlerMiddleware
         switch (exception)
         {
             case ValidationException validationException:
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
                 response.Message = "Input validation errors.";
                 response.Errors = validationException.Errors
                     .GroupBy(e => e.PropertyName)
@@ -58,51 +64,43 @@ public class GlobalExceptionHandlerMiddleware
                         g => g.Key,
                         g => g.Select(e => e.ErrorMessage).ToArray()
                     );
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 break;
 
             case ArgumentException argException:
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
                 response.Message = argException.Message;
                 if (_environment.IsDevelopment())
                 {
                     response.Details = argException.StackTrace;
                 }
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 break;
 
             case KeyNotFoundException:
-                response.StatusCode = (int)HttpStatusCode.NotFound;
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
                 response.Message = "Requested resource not found.";
-                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 break;
 
             case UnauthorizedAccessException:
-                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 response.Message = "Access denied.";
-                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 break;
 
             default:
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 response.Message = _environment.IsDevelopment()
                     ? exception.Message
                     : "An internal server error occurred. Please try again later.";
+
                 if (_environment.IsDevelopment())
                 {
                     response.Details = exception.StackTrace;
                 }
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 break;
         }
 
-        var jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+        response.StatusCode = context.Response.StatusCode;
 
-        var jsonResponse = JsonSerializer.Serialize(response, jsonOptions);
+        var jsonResponse = JsonSerializer.Serialize(response, _jsonOptions);
         await context.Response.WriteAsync(jsonResponse);
     }
 }
-

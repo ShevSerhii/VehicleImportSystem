@@ -24,7 +24,7 @@ public class HistoryService : IHistoryService
 
     public async Task<List<CalculationRecordDto>> GetUserHistoryAsync(string userDeviceId, CancellationToken ct)
     {
-        var records = await _context.CalculationRecords
+        var records = await _context.CustomsCalculation
             .AsNoTracking()
             .Include(r => r.Brand)
             .Include(r => r.Model)
@@ -37,17 +37,17 @@ public class HistoryService : IHistoryService
 
     public async Task<bool> DeleteRecordAsync(int id, CancellationToken ct)
     {
-        var record = await _context.CalculationRecords.FindAsync(new object[] { id }, ct);
+        var record = await _context.CustomsCalculation.FindAsync(new object[] { id }, ct);
         if (record == null) return false;
 
-        _context.CalculationRecords.Remove(record);
+        _context.CustomsCalculation.Remove(record);
         await _context.SaveChangesAsync(ct);
         return true;
     }
 
     public async Task ClearUserHistoryAsync(string userDeviceId, CancellationToken ct)
     {
-        await _context.CalculationRecords
+        await _context.CustomsCalculation
             .Where(r => r.UserDeviceId == userDeviceId)
             .ExecuteDeleteAsync(ct);
     }

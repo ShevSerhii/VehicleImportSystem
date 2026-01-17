@@ -13,5 +13,5 @@ public interface IBrandService
     /// </summary>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>List of all brands.</returns>
-    Task<List<BrandDto>> GetAllBrandsAsync(CancellationToken ct);
+    Task<IEnumerable<BrandDto>> GetAllBrandsAsync(CancellationToken ct);
 }

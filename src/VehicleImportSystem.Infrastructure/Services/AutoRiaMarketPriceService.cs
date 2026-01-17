@@ -65,12 +65,12 @@ public class AutoRiaMarketPriceService : IMarketPriceService
 
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<List<AutoRiaItemDto>>(url);
+                var response = await _httpClient.GetFromJsonAsync<IEnumerable<AutoRiaItemDto>>(url);
 
                 return response?
                         .Select(x => x.ToDto(markId))
                         .ToList()
-                        ?? new List<ModelDto>();
+                        ?? [];
             }
             catch (Exception ex)
             {
@@ -78,9 +78,9 @@ public class AutoRiaMarketPriceService : IMarketPriceService
 
                 // Do not cache failure for long (retry in 1 minute)
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1);
-                return new List<ModelDto>();
+                return [];
             }
-        }) ?? new List<ModelDto>();
+        }) ?? [];
     }
 
     /// <summary>
@@ -96,12 +96,14 @@ public class AutoRiaMarketPriceService : IMarketPriceService
             // Market prices are stable, cache for 24 hours
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24);
 
+            int fuelId = (int)fuelType;
+
             _logger.LogInformation(
                 "Fetching average price -> Mark: {Mark}, Model: {Model}, Year: {Year}, Fuel: {Fuel}...",
                 markId, modelId, year, fuelType.ToString() ?? "All");
 
             // Build the base URL
-            var url = $"https://developers.ria.com/auto/average_price?api_key={_apiKey}&category_id={PassengerCarCategoryId}&marka_id={markId}&model_id={modelId}&yers={year}&fuel_id={fuelType}";
+            var url = $"https://developers.ria.com/auto/average_price?api_key={_apiKey}&category_id={PassengerCarCategoryId}&marka_id={markId}&model_id={modelId}&yers={year}&fuel_id={fuelId}";
 
             try
             {
@@ -126,7 +128,7 @@ public class AutoRiaMarketPriceService : IMarketPriceService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching average price for {Mark}/{Model}/{Year}/{FuelType}", markId, modelId, year, fuelType);
+                _logger.LogError(ex, "Error fetching average price. URL: {Url}", url);
                 return 0m;
             }
         });

@@ -45,26 +45,29 @@ public class CustomsCalculatorService : ICustomsCalculatorService
         decimal usdRate = await _currencyService.GetUsdRateAsync();
 
         decimal marketPriceUsd = await _marketPriceService.GetAveragePriceAsync(
-            request.MarkId, request.ModelId, request.Year);
+            request.MarkId, request.ModelId, request.Year, request.FuelType);
 
         // Convert USD to EUR using cross-rate: EUR/USD = (EUR/UAH) / (USD/UAH)
         decimal usdToEurRate = usdRate / euroRate;
         decimal marketPriceEur = marketPriceUsd * usdToEurRate;
 
-        // Electric vehicles pay 0% duty.
         decimal duty = (request.FuelType == FuelType.Electric)
             ? 0
             : request.PriceInEur * _settings.ImportDutyRate;
 
         decimal excise = CalculateExcise(request.FuelType, request.EngineCapacity, request.Year);
 
-        // Base = Price + Duty + Excise. EV pays 0% VAT.
+        // EV pays 20% VAT in 2026
         decimal vatBase = request.PriceInEur + duty + excise;
         decimal vat =  vatBase * _settings.VatRate;
 
         // Base includes VAT. Calculated in UAH based on thresholds.
         decimal pensionBaseEur = request.PriceInEur;
-        decimal pensionFund = CalculatePensionFund(pensionBaseEur, euroRate);
+
+        // Electric vehicles are EXEMPT from Pension Fund fee
+        decimal pensionFund = (request.FuelType == FuelType.Electric)
+           ? 0
+            : CalculatePensionFund(pensionBaseEur, euroRate);
 
         decimal totalTaxes = duty + excise + vat + pensionFund;
         decimal turnkeyPrice = request.PriceInEur + totalTaxes;
@@ -119,7 +122,7 @@ public class CustomsCalculatorService : ICustomsCalculatorService
             marketPriceEur
         );
 
-        _context.CalculationRecords.Add(record);
+        _context.CustomsCalculation.Add(record);
         await _context.SaveChangesAsync(default);
 
         return request.ToResultDto(

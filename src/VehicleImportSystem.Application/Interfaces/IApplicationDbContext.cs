@@ -12,7 +12,7 @@ public interface IAppDbContext
     DbSet<CarBrand> CarBrands { get; }
     DbSet<CarModel> CarModels { get; }
     DbSet<CurrencyRate> CurrencyRates { get; }
-    DbSet<CustomsCalculation> CalculationRecords { get; }
+    DbSet<CustomsCalculation> CustomsCalculation { get; }
 
     /// <summary>
     /// Saves all changes made in this context to the database.
