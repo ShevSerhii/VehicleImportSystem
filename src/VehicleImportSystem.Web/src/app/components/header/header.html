@@ -1,0 +1,41 @@
+<mat-toolbar color="primary" class="mat-elevation-z6">
+  
+  <span class="logo-group">
+    <mat-icon class="car-icon">directions_car</mat-icon>
+    <span class="title">Vehicle Import</span>
+  </span>
+
+  <span class="spacer"></span>
+
+  @if (isLoadingRates) {
+    <span class="loading-text">Завантаження курсів...</span>
+  } @else if (errorLoadingRates) {
+    <span class="error-text" title="Помилка завантаження курсів. Повторна спроба через 5 сек.">
+      Помилка
+    </span>
+  } @else if (rates) {
+    <div class="currency-chip">
+      <div class="rate">
+        <span class="symbol">🇺🇸</span>
+        <b>{{ rates.usd | number:'1.2-2' }}</b>
+      </div>
+      
+      <div class="vertical-line"></div>
+      
+      <div class="rate">
+        <span class="symbol">🇪🇺</span>
+        <b>{{ rates.eur | number:'1.2-2' }}</b>
+      </div>
+    </div>
+  }
+
+  <button mat-icon-button 
+          (click)="themeService.toggleTheme()" 
+          class="theme-toggle"
+          [matTooltip]="themeService.isDarkMode() ? 'Світла тема' : 'Темна тема'">
+    <mat-icon>
+      {{ themeService.isDarkMode() ? 'light_mode' : 'dark_mode' }}
+    </mat-icon>
+  </button>
+
+  </mat-toolbar>
