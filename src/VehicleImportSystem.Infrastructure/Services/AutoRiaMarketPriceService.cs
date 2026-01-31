@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,7 @@ public class AutoRiaMarketPriceService : IMarketPriceService
     private readonly IMemoryCache _cache;
     private readonly ILogger<AutoRiaMarketPriceService> _logger;
     private readonly string _apiKey;
+    private readonly ICurrencyService _currencyService;
 
     // Auto.ria category ID for passenger cars
     private const int PassengerCarCategoryId = 1;
@@ -30,11 +32,13 @@ public class AutoRiaMarketPriceService : IMarketPriceService
         IHttpClientFactory httpClientFactory,
         IMemoryCache cache,
         IConfiguration configuration,
+        ICurrencyService currencyService,
         ILogger<AutoRiaMarketPriceService> logger)
     {
         _httpClient = httpClientFactory.CreateClient("AutoRiaApi");
         _cache = cache;
         _logger = logger;
+        _currencyService = currencyService;
         _apiKey = configuration["AutoRia:ApiKey"]
                   ?? throw new ArgumentNullException("AutoRia API Key is missing in configuration");
 
@@ -85,22 +89,46 @@ public class AutoRiaMarketPriceService : IMarketPriceService
 
     /// <summary>
     /// Retrieves the average market price for a specific car model, year and fuel type.
-    /// Uses InterQuartileMean to filter out outliers.
+    /// Uses InterQuartileMean to filter out outliers. Returns both USD and EUR prices.
     /// </summary>
-    public async Task<decimal> GetAveragePriceAsync(int markId, int modelId, int year, FuelType fuelType)
+    public async Task<AveragePriceDto> GetAveragePriceAsync(
+        int markId, int modelId, int year, FuelType fuelType, decimal engineVolume)
     {
-        string cacheKey = $"avg_price_{markId}_{modelId}_{year}_{fuelType}";
+        decimal priceUsd = await GetRawPriceFromApiWithCache(markId, modelId, year, fuelType, engineVolume);
+
+        if (priceUsd <= 0)
+        {
+            return new AveragePriceDto { PriceUsd = 0, PriceEur = 0 };
+        }
+
+        decimal euroRate = await _currencyService.GetEuroRateAsync();
+        decimal usdRate = await _currencyService.GetUsdRateAsync();
+
+        decimal priceEur = 0;
+        if (euroRate > 0)
+        {
+            priceEur = priceUsd * (usdRate / euroRate);
+        }
+
+        return new AveragePriceDto
+        {
+            PriceUsd = Math.Round(priceUsd, 0),
+            PriceEur = Math.Round(priceEur, 0)
+        };
+    }
+
+    private async Task<decimal> GetRawPriceFromApiWithCache(
+        int markId, int modelId, int year, FuelType fuelType, decimal engineVolume)
+    {
+        decimal volumeFrom = fuelType == FuelType.Electric ? 0 : Math.Max(0, engineVolume - 0.2m);
+        decimal volumeTo = fuelType == FuelType.Electric ? 0 : engineVolume + 0.2m;
+        int fuelId = (int)fuelType;
+
+        string cacheKey = $"avg_price_{markId}_{modelId}_{year}_{fuelType}_{engineVolume}";
 
         return await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
-            // Market prices are stable, cache for 24 hours
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24);
-
-            int fuelId = (int)fuelType;
-
-            _logger.LogInformation(
-                "Fetching average price -> Mark: {Mark}, Model: {Model}, Year: {Year}, Fuel: {Fuel}...",
-                markId, modelId, year, fuelType.ToString() ?? "All");
 
             // Build the base URL
             var url = $"https://developers.ria.com/auto/average_price?api_key={_apiKey}&category_id={PassengerCarCategoryId}&marka_id={markId}&model_id={modelId}&yers={year}&fuel_id={fuelId}";
@@ -109,14 +137,14 @@ public class AutoRiaMarketPriceService : IMarketPriceService
             {
                 var response = await _httpClient.GetFromJsonAsync<AutoRiaAveragePriceResponse>(url);
 
-                if (response == null)
+                if (response == null || !response.InterQuartileMean.HasValue)
                 {
-                    _logger.LogWarning("API returned null response for price query.");
+                    _logger.LogWarning("Auto.RIA returned null price for URL: {Url}", url);
                     return 0m;
                 }
 
                 _logger.LogInformation("Price received: {Price}", response.InterQuartileMean);
-                return (decimal)response.InterQuartileMean;
+                return Convert.ToDecimal(response.InterQuartileMean.Value);
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)
             {

@@ -9,5 +9,10 @@ public record AveragePriceDto
     /// Average market price in USD.
     /// </summary>
     public decimal PriceUsd { get; set; }
+
+    /// <summary>
+    /// Average market price in EUR.
+    /// </summary>
+    public decimal PriceEur { get; set; }
 }
 

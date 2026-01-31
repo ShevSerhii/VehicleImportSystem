@@ -44,8 +44,10 @@ public class CustomsCalculatorService : ICustomsCalculatorService
         decimal euroRate = await _currencyService.GetEuroRateAsync();
         decimal usdRate = await _currencyService.GetUsdRateAsync();
 
-        decimal marketPriceUsd = await _marketPriceService.GetAveragePriceAsync(
-            request.MarkId, request.ModelId, request.Year, request.FuelType);
+        var priceDto = await _marketPriceService.GetAveragePriceAsync(
+            request.MarkId, request.ModelId, request.Year, request.FuelType, request.EngineCapacity);
+
+        decimal marketPriceUsd = priceDto.PriceUsd;
 
         // Convert USD to EUR using cross-rate: EUR/USD = (EUR/UAH) / (USD/UAH)
         decimal usdToEurRate = usdRate / euroRate;

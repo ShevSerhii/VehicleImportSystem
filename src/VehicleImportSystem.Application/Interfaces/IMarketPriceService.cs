@@ -1,4 +1,5 @@
-﻿using VehicleImportSystem.Application.DTOs;
+﻿using System;
+using VehicleImportSystem.Application.DTOs;
 using VehicleImportSystem.Domain.Enums;
 
 namespace VehicleImportSystem.Application.Interfaces;
@@ -23,5 +24,5 @@ public interface IMarketPriceService
     /// <param name="year">Manufacturing year.</param>
     /// <param name="fuelType">Optional: The fuel type filter. If null, calculates average across all fuel types.</param>
     /// <returns>Average price in USD.</returns>
-    Task<decimal> GetAveragePriceAsync(int markId, int modelId, int year, FuelType fuelType);
+    Task<AveragePriceDto> GetAveragePriceAsync(int markId, int modelId, int year, FuelType fuelType, decimal engineVolume);
 }

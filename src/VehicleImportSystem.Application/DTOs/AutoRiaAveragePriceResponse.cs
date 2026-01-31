@@ -8,7 +8,7 @@ namespace VehicleImportSystem.Infrastructure.Services.AutoRia;
 public record AutoRiaAveragePriceResponse
 {
     [JsonPropertyName("interQuartileMean")]
-    public double InterQuartileMean { get; set; }
+    public double? InterQuartileMean { get; set; }
 
     [JsonPropertyName("total")]
     public int Total { get; set; }
