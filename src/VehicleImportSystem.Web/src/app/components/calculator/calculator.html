@@ -60,7 +60,7 @@
         @if (isHybrid) {
         <div class="row">
           <mat-form-field appearance="outline">
-            <mat-label>Схема акцизу (гібрид)</mat-label>
+            <mat-label>Акциз</mat-label>
             <mat-select formControlName="hybridExciseScheme">
               @for (scheme of hybridSchemes; track scheme.value) {
               <mat-option [value]="scheme.value">{{ scheme.label }}</mat-option>
@@ -70,7 +70,7 @@
 
           @if (isHybridByIce) {
           <mat-form-field appearance="outline">
-            <mat-label>Тип ДВЗ гібрида</mat-label>
+            <mat-label>Двигун</mat-label>
             <mat-select formControlName="hybridIceFuelType">
               @for (ice of hybridIceFuelTypes; track ice.value) {
               <mat-option [value]="ice.value">{{ ice.label }}</mat-option>
@@ -111,9 +111,9 @@
         @if (isElectric) {
         <div class="row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Частка вартості без ПДВ (перехідні правила, %)</mat-label>
-            <input matInput type="number" formControlName="evVatExemptPercent" min="0" max="100" />
-            <mat-hint>Оплата до 01.01.2026 — % ціни, звільненої від ПДВ (тест №3: 50)</mat-hint>
+            <mat-label>Частина ціни без ПДВ, %</mat-label>
+            <input matInput type="number" formControlName="evVatExemptPercent" min="0" max="100" placeholder="0" />
+            <mat-hint>Якщо оплатили до 1 січня 2026 — вкажіть відсоток</mat-hint>
           </mat-form-field>
         </div>
         }

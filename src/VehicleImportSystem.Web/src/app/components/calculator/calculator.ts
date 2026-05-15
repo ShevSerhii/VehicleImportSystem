@@ -62,19 +62,19 @@ export class Calculator implements OnInit {
     { value: FuelType.Petrol, label: 'Petrol (Бензин)' },
     { value: FuelType.Diesel, label: 'Diesel (Дизель)' },
     { value: FuelType.Gas, label: 'Gas (Газ)' },
-    { value: FuelType.GasPetrol, label: 'Gas/Petrol (ГБО, акциз як бензин)' },
+    { value: FuelType.GasPetrol, label: 'Gas/Petrol (ГБО)' },
     { value: FuelType.Hybrid, label: 'Hybrid (Гібрид)' },
     { value: FuelType.Electric, label: 'Electric (Електро)' },
   ];
 
   hybridSchemes = [
-    { value: HybridExciseScheme.FixedRate, label: 'Фіксовано 100 € (коди УКТ ЗЕД)' },
-    { value: HybridExciseScheme.ByIceEngine, label: 'За об\'ємом ДВЗ (plug-in)' },
+    { value: HybridExciseScheme.FixedRate, label: '100 €' },
+    { value: HybridExciseScheme.ByIceEngine, label: 'За об\'ємом двигуна' },
   ];
 
   hybridIceFuelTypes = [
-    { value: FuelType.Petrol, label: 'Бензиновий ДВЗ' },
-    { value: FuelType.Diesel, label: 'Дизельний ДВЗ' },
+    { value: FuelType.Petrol, label: 'Бензин' },
+    { value: FuelType.Diesel, label: 'Дизель' },
   ];
 
   isLoading = false;
