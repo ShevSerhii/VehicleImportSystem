@@ -1,0 +1,41 @@
+:root {
+--app-gap-main: 24px;
+  --app-card-radius: 12px;
+  --app-padding-card: 20px;
+
+  --app-primary: var(--mat-sys-primary);
+  --app-accent: var(--mat-sys-tertiary);
+  
+  --app-success: #2e7d32;
+  --app-success-container: #e8f5e9;
+  --app-danger: var(--mat-sys-error);
+  --app-danger-container: var(--mat-sys-error-container);
+
+  --app-card-bg: var(--mat-sys-surface-container-low);
+  --app-border: var(--mat-sys-outline-variant);
+
+  --app-shadow-success: 0 4px 15px rgba(76, 175, 80, 0.2);
+  --app-shadow-danger: 0 4px 15px rgba(244, 67, 54, 0.2);
+  --app-border-dashed: var(--mat-sys-outline-variant);
+
+  --chart-duty: #FF6384;
+  --chart-excise: #36A2EB;
+  --chart-vat: #FFCE56;
+  --chart-pension: #4BC0C0;
+  --chart-border: #ffffff;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --app-success: #81c784;
+  --app-success-container: #1b2e1c;
+
+  --app-shadow-success: 0 4px 15px rgba(0, 0, 0, 0.5);
+  --app-shadow-danger: 0 4px 15px rgba(0, 0, 0, 0.5);
+
+  --chart-duty: #ff8fa3;
+  --chart-excise: #6abbf7;
+  --chart-vat: #ffe082;
+  --chart-pension: #80cbc4;
+  --chart-border: #303030;
+}

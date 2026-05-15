@@ -1,0 +1,97 @@
+.mat-toolbar {
+  background-color: var(--mat-sys-primary) !important;
+  color: var(--mat-sys-on-primary) !important;
+  box-shadow: var(--mat-sys-level2-shadow);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+
+  .car-icon {
+    font-size: 28px;
+    height: 28px;
+    width: 28px;
+  }
+
+  .title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+
+    @media (max-width: 400px) {
+      display: none;
+    }
+  }
+}
+
+.currency-chip {
+  display: flex;
+  align-items: center;
+  background: color-mix(in srgb, var(--mat-sys-on-primary), transparent 85%);
+  padding: 0 16px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: default;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-primary), transparent 90%);
+
+  .rate {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .symbol {
+      font-size: 1.3em;
+      padding-bottom: 2px;
+    }
+    
+    b {
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  .vertical-line {
+    width: 1px;
+    height: 20px;
+    background: color-mix(in srgb, var(--mat-sys-on-primary), transparent 70%);
+    margin: 0 12px;
+  }
+}
+
+.loading-text {
+  font-size: 13px;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.error-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mat-sys-error-container);
+  cursor: help;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.theme-toggle {
+  margin-left: 12px;
+  color: var(--mat-sys-on-primary); 
+}
+
+.theme-toggle mat-icon {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle:active mat-icon {
+  transform: rotate(45deg);
+}
