@@ -52,14 +52,19 @@ public class CustomsSettings
     public int MaxExciseAge { get; set; }
 
     /// <summary>
-    /// Upper limit for the 3% Pension Fund rate (in UAH).
+    /// Subsistence minimum for able-bodied persons (UAH). From 01.01.2026 — 3328 UAH.
     /// </summary>
-    public decimal PensionThresholdTier1 { get; set; }
+    public decimal SubsistenceMinimum { get; set; }
 
     /// <summary>
-    /// Upper limit for the 4% Pension Fund rate (in UAH).
+    /// Multiplier for 3% pension tier (165 × subsistence minimum).
     /// </summary>
-    public decimal PensionThresholdTier2 { get; set; }
+    public int PensionTier1Multiplier { get; set; }
+
+    /// <summary>
+    /// Multiplier for 4% pension tier upper bound (290 × subsistence minimum).
+    /// </summary>
+    public int PensionTier2Multiplier { get; set; }
 
     /// <summary>
     /// Low Pension Fund rate (e.g., 0.03).
