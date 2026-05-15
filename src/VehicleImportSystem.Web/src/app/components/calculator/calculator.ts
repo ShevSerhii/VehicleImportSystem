@@ -18,7 +18,8 @@ import { Chart, ChartConfiguration, ChartData, registerables } from 'chart.js';
 
 import { Brand, Model } from '../../models/vehicle.models';
 import { FuelType } from '../../models/fuel-type.enum';
-import { CalculationResult } from '../../models/calculation.models';
+import { HybridExciseScheme } from '../../models/hybrid-excise-scheme.enum';
+import { CalculationRequest, CalculationResult } from '../../models/calculation.models';
 import { VehicleApiService } from '../../services/vehicle-api';
 import { ThemeService } from '../../services/theme.service';
 
@@ -48,6 +49,7 @@ export class Calculator implements OnInit {
   form: FormGroup;
 
   protected readonly FuelType = FuelType;
+  protected readonly HybridExciseScheme = HybridExciseScheme;
   private readonly themeService = inject(ThemeService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -59,9 +61,20 @@ export class Calculator implements OnInit {
   fuelTypes = [
     { value: FuelType.Petrol, label: 'Petrol (Бензин)' },
     { value: FuelType.Diesel, label: 'Diesel (Дизель)' },
-    { value: FuelType.GasPetrol, label: 'Gas/Petrol (ГБО)' },
+    { value: FuelType.Gas, label: 'Gas (Газ)' },
+    { value: FuelType.GasPetrol, label: 'Gas/Petrol (ГБО, акциз як бензин)' },
     { value: FuelType.Hybrid, label: 'Hybrid (Гібрид)' },
     { value: FuelType.Electric, label: 'Electric (Електро)' },
+  ];
+
+  hybridSchemes = [
+    { value: HybridExciseScheme.FixedRate, label: 'Фіксовано 100 € (коди УКТ ЗЕД)' },
+    { value: HybridExciseScheme.ByIceEngine, label: 'За об\'ємом ДВЗ (plug-in)' },
+  ];
+
+  hybridIceFuelTypes = [
+    { value: FuelType.Petrol, label: 'Бензиновий ДВЗ' },
+    { value: FuelType.Diesel, label: 'Дизельний ДВЗ' },
   ];
 
   isLoading = false;
@@ -111,7 +124,22 @@ export class Calculator implements OnInit {
       fuelType: [null, Validators.required],
       engineCapacity: [2000, [Validators.required, Validators.min(1)]],
       priceInEur: [15000, [Validators.required, Validators.min(1)]],
+      hybridExciseScheme: [HybridExciseScheme.FixedRate],
+      hybridIceFuelType: [FuelType.Petrol],
+      evVatExemptPercent: [0, [Validators.min(0), Validators.max(100)]],
     });
+  }
+
+  get isHybrid(): boolean {
+    return this.form.get('fuelType')?.value === FuelType.Hybrid;
+  }
+
+  get isHybridByIce(): boolean {
+    return this.isHybrid && this.form.get('hybridExciseScheme')?.value === HybridExciseScheme.ByIceEngine;
+  }
+
+  get isElectric(): boolean {
+    return this.form.get('fuelType')?.value === FuelType.Electric;
   }
 
   ngOnInit(): void {
@@ -201,6 +229,18 @@ export class Calculator implements OnInit {
           }
         }
       });
+
+    this.form.get('fuelType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const scheme = this.form.get('hybridExciseScheme');
+        if (this.isHybrid) {
+          scheme?.setValidators(Validators.required);
+        } else {
+          scheme?.clearValidators();
+        }
+        scheme?.updateValueAndValidity({ emitEvent: false });
+      });
   }
 
   private filterBrands(value: string): void {
@@ -275,7 +315,7 @@ export class Calculator implements OnInit {
     this.isLoading = true;
     this.result = null;
 
-    this.api.calculate(this.form.value).subscribe({
+    this.api.calculate(this.buildCalculationRequest()).subscribe({
       next: (res) => {
         this.result = res;
         this.lastCalculationResult = res;
@@ -288,6 +328,28 @@ export class Calculator implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  private buildCalculationRequest(): CalculationRequest {
+    const v = this.form.getRawValue();
+    const request: CalculationRequest = {
+      markId: v.markId,
+      modelId: v.modelId,
+      year: v.year,
+      fuelType: v.fuelType,
+      engineCapacity: v.engineCapacity,
+      priceInEur: v.priceInEur,
+      evVatExemptShare: this.isElectric ? (v.evVatExemptPercent ?? 0) / 100 : 0,
+    };
+
+    if (v.fuelType === FuelType.Hybrid) {
+      request.hybridExciseScheme = v.hybridExciseScheme;
+      if (v.hybridExciseScheme === HybridExciseScheme.ByIceEngine) {
+        request.hybridIceFuelType = v.hybridIceFuelType;
+      }
+    }
+
+    return request;
   }
 
   private updateChartData(res: CalculationResult) {

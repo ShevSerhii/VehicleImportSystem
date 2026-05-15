@@ -40,4 +40,20 @@ public sealed record CalculationRequest
     /// ID of the selected Model (from Auto.ria).
     /// </summary>
     public int ModelId { get; set; }
+
+    /// <summary>
+    /// For <see cref="FuelType.Hybrid"/>: fixed 100 EUR or ICE volume formula (пп. 215.3.5-1 ПКУ).
+    /// </summary>
+    public HybridExciseScheme? HybridExciseScheme { get; set; }
+
+    /// <summary>
+    /// For hybrid with <see cref="HybridExciseScheme.ByIceEngine"/>: petrol or diesel ICE rates.
+    /// </summary>
+    public FuelType? HybridIceFuelType { get; set; }
+
+    /// <summary>
+    /// For electric vehicles: share of customs value (0–1) exempt from VAT under transitional rules
+    /// (first taxable event before 01.01.2026). 0 = full 20% VAT.
+    /// </summary>
+    public decimal EvVatExemptShare { get; set; }
 }

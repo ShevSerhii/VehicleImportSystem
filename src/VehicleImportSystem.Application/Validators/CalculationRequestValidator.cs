@@ -6,7 +6,7 @@ namespace VehicleImportSystem.Application.Validators;
 
 public class CalculationRequestValidator : AbstractValidator<CalculationRequest>
 {
-    private const int MinYear = 1996; // Euro-2 standard introduction
+    private const int MinYear = 1996;
     private const int MinCapacity = 1;
     private const int MaxIceCapacityCc = 10000;
     private const int MaxElectricCapacityKwh = 300;
@@ -23,7 +23,7 @@ public class CalculationRequestValidator : AbstractValidator<CalculationRequest>
 
         RuleFor(x => x.FuelType)
             .IsInEnum()
-            .WithMessage("Invalid fuel type. Permitted values: Petrol, Diesel, Electric, Hybrid.");
+            .WithMessage("Invalid fuel type.");
 
         RuleFor(x => x.EngineCapacity)
             .GreaterThanOrEqualTo(MinCapacity)
@@ -43,7 +43,10 @@ public class CalculationRequestValidator : AbstractValidator<CalculationRequest>
             .GreaterThan(0)
             .WithMessage("Model is required.");
 
-        // Electric vehicles validation
+        RuleFor(x => x.EvVatExemptShare)
+            .InclusiveBetween(0m, 1m)
+            .WithMessage("EV VAT exempt share must be between 0 and 1.");
+
         When(x => x.FuelType == FuelType.Electric, () =>
         {
             RuleFor(x => x.EngineCapacity)
@@ -51,14 +54,32 @@ public class CalculationRequestValidator : AbstractValidator<CalculationRequest>
                 .WithMessage($"For electric vehicles, battery capacity cannot exceed {MaxElectricCapacityKwh} kWh.");
         });
 
-        // ICE and Hybrid vehicles validation
         When(x => x.FuelType == FuelType.Petrol ||
-             x.FuelType == FuelType.Diesel ||
-             x.FuelType == FuelType.Hybrid, () =>
-             {
-                 RuleFor(x => x.EngineCapacity)
-                     .LessThanOrEqualTo(MaxIceCapacityCc)
-                     .WithMessage($"For passenger vehicles, engine capacity cannot exceed {MaxIceCapacityCc} cm³.");
-             });
+                  x.FuelType == FuelType.Diesel ||
+                  x.FuelType == FuelType.Gas ||
+                  x.FuelType == FuelType.GasPetrol, () =>
+        {
+            RuleFor(x => x.EngineCapacity)
+                .LessThanOrEqualTo(MaxIceCapacityCc)
+                .WithMessage($"For passenger vehicles, engine capacity cannot exceed {MaxIceCapacityCc} cm³.");
+        });
+
+        When(x => x.FuelType == FuelType.Hybrid, () =>
+        {
+            RuleFor(x => x.HybridExciseScheme)
+                .NotNull()
+                .WithMessage("Hybrid excise scheme is required.");
+
+            When(x => x.HybridExciseScheme == HybridExciseScheme.ByIceEngine, () =>
+            {
+                RuleFor(x => x.HybridIceFuelType)
+                    .Must(t => t is FuelType.Petrol or FuelType.Diesel)
+                    .WithMessage("Hybrid ICE fuel type must be Petrol or Diesel.");
+
+                RuleFor(x => x.EngineCapacity)
+                    .LessThanOrEqualTo(MaxIceCapacityCc)
+                    .WithMessage($"For passenger vehicles, engine capacity cannot exceed {MaxIceCapacityCc} cm³.");
+            });
+        });
     }
 }

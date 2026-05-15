@@ -1,4 +1,5 @@
 import { FuelType } from './fuel-type.enum';
+import { HybridExciseScheme } from './hybrid-excise-scheme.enum';
 
 export interface CalculationRequest {
   markId?: number;
@@ -7,6 +8,9 @@ export interface CalculationRequest {
   fuelType: FuelType;
   engineCapacity: number;
   priceInEur: number;
+  hybridExciseScheme?: HybridExciseScheme | null;
+  hybridIceFuelType?: FuelType | null;
+  evVatExemptShare?: number;
 }
 
 export interface CalculationResult {

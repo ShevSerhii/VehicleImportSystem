@@ -57,8 +57,32 @@
           </mat-form-field>
         </div>
 
+        @if (isHybrid) {
         <div class="row">
-          @if (form.get('fuelType')?.value === FuelType.Electric) {
+          <mat-form-field appearance="outline">
+            <mat-label>Схема акцизу (гібрид)</mat-label>
+            <mat-select formControlName="hybridExciseScheme">
+              @for (scheme of hybridSchemes; track scheme.value) {
+              <mat-option [value]="scheme.value">{{ scheme.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (isHybridByIce) {
+          <mat-form-field appearance="outline">
+            <mat-label>Тип ДВЗ гібрида</mat-label>
+            <mat-select formControlName="hybridIceFuelType">
+              @for (ice of hybridIceFuelTypes; track ice.value) {
+              <mat-option [value]="ice.value">{{ ice.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          }
+        </div>
+        }
+
+        <div class="row">
+          @if (isElectric) {
           <mat-form-field appearance="outline">
             <mat-label>Ємність батареї</mat-label>
             <input matInput type="number" formControlName="engineCapacity" placeholder="Напр. 75" />
@@ -83,6 +107,16 @@
             <input matInput type="number" formControlName="priceInEur" />
           </mat-form-field>
         </div>
+
+        @if (isElectric) {
+        <div class="row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Частка вартості без ПДВ (перехідні правила, %)</mat-label>
+            <input matInput type="number" formControlName="evVatExemptPercent" min="0" max="100" />
+            <mat-hint>Оплата до 01.01.2026 — % ціни, звільненої від ПДВ (тест №3: 50)</mat-hint>
+          </mat-form-field>
+        </div>
+        }
 
         <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="form.invalid || isLoading">
           @if (isLoading) {
