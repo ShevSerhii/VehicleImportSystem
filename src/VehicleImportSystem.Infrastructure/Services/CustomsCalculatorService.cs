@@ -20,12 +20,6 @@ public class CustomsCalculatorService : ICustomsCalculatorService
     private readonly CustomsSettings _settings;
     private readonly IAppDbContext _context;
 
-    /// <summary>
-    /// Initializes a new instance of the service with required dependencies.
-    /// </summary>
-    /// <param name="currencyService">Service to get exchange rates.</param>
-    /// <param name="marketPriceService">Service to get market analytics.</param>
-    /// <param name="settings">Configuration options loaded from appsettings.json.</param>
     public CustomsCalculatorService(
         ICurrencyService currencyService,
         IMarketPriceService marketPriceService,
@@ -34,7 +28,7 @@ public class CustomsCalculatorService : ICustomsCalculatorService
     {
         _currencyService = currencyService;
         _marketPriceService = marketPriceService;
-        _settings = settings.Value; // Extracting the actual settings object
+        _settings = settings.Value;
         _context = context;
     }
 
@@ -49,34 +43,28 @@ public class CustomsCalculatorService : ICustomsCalculatorService
 
         decimal marketPriceUsd = priceDto.PriceUsd;
 
-        // Convert USD to EUR using cross-rate: EUR/USD = (EUR/UAH) / (USD/UAH)
         decimal usdToEurRate = usdRate / euroRate;
         decimal marketPriceEur = marketPriceUsd * usdToEurRate;
 
-        decimal duty = (request.FuelType == FuelType.Electric)
+        decimal duty = request.FuelType == FuelType.Electric
             ? 0
             : request.PriceInEur * _settings.ImportDutyRate;
 
-        decimal excise = CalculateExcise(request.FuelType, request.EngineCapacity, request.Year);
+        decimal excise = CalculateExcise(request);
 
-        // EV pays 20% VAT in 2026
         decimal vatBase = request.PriceInEur + duty + excise;
-        decimal vat =  vatBase * _settings.VatRate;
+        decimal vat = CalculateVat(request, vatBase);
 
-        // Base includes VAT. Calculated in UAH based on thresholds.
         decimal pensionBaseEur = request.PriceInEur;
 
-        // Electric vehicles are EXEMPT from Pension Fund fee
-        decimal pensionFund = (request.FuelType == FuelType.Electric)
-           ? 0
+        decimal pensionFund = request.FuelType == FuelType.Electric
+            ? 0
             : CalculatePensionFund(pensionBaseEur, euroRate);
 
         decimal totalTaxes = duty + excise + vat + pensionFund;
         decimal turnkeyPrice = request.PriceInEur + totalTaxes;
         decimal profit = marketPriceEur - turnkeyPrice;
 
-        // Validate that Brand and Model exist in database before saving
-        // If they don't exist, set to null to avoid foreign key constraint violations
         int? validBrandId = null;
         if (request.MarkId > 0)
         {
@@ -99,16 +87,13 @@ public class CustomsCalculatorService : ICustomsCalculatorService
             }
             else
             {
-                // Model not found in DB. Fetch details from API to get the Name.
                 var modelsFromApi = await _marketPriceService.GetModelsFromApiAsync(request.MarkId);
                 var targetModelDto = modelsFromApi.FirstOrDefault(x => x.Id == request.ModelId);
 
                 if (targetModelDto != null)
                 {
                     var newModel = targetModelDto.ToEntity(request.MarkId);
-
                     _context.CarModels.Add(newModel);
-
                     validModelId = newModel.Id;
                 }
             }
@@ -141,58 +126,105 @@ public class CustomsCalculatorService : ICustomsCalculatorService
     }
 
     /// <summary>
-    /// Helper method to calculate Excise Tax based on vehicle type and age.
+    /// VAT: 20% from 2026 for all vehicles. EV may reduce base via <see cref="CalculationRequest.EvVatExemptShare"/>.
     /// </summary>
-    private decimal CalculateExcise(FuelType fuelType, int capacity, int year)
+    private decimal CalculateVat(CalculationRequest request, decimal vatBase)
     {
-        int currentYear = DateTime.UtcNow.Year;
-        int age = currentYear - year;
+        decimal taxableShare = 1m;
+
+        if (request.FuelType == FuelType.Electric && request.EvVatExemptShare > 0)
+        {
+            taxableShare = 1m - Math.Clamp(request.EvVatExemptShare, 0m, 1m);
+        }
+
+        return vatBase * taxableShare * _settings.VatRate;
+    }
+
+    /// <summary>
+    /// Excise per пп. 215.3.5-1 ПКУ: ICE formula, gas/LPG as petrol, hybrid schemes, EV per kWh.
+    /// </summary>
+    private decimal CalculateExcise(CalculationRequest request)
+    {
+        int age = GetExciseAgeCoefficient(request.Year);
+
+        if (request.FuelType == FuelType.Hybrid)
+        {
+            var hybridScheme = request.HybridExciseScheme ?? HybridExciseScheme.FixedRate;
+
+            return hybridScheme == HybridExciseScheme.ByIceEngine
+                ? CalculateIceExcise(
+                    request.HybridIceFuelType ?? FuelType.Petrol,
+                    request.EngineCapacity,
+                    age)
+                : _settings.HybridRate;
+        }
+
+        if (request.FuelType == FuelType.Electric)
+        {
+            return _settings.ElectricRate * request.EngineCapacity;
+        }
+
+        var iceFuelType = MapGasToPetrolExciseFuelType(request.FuelType);
+        return CalculateIceExcise(iceFuelType, request.EngineCapacity, age);
+    }
+
+    /// <summary>
+    /// LPG / gas-petrol vehicles: excise uses petrol rates (engine displacement in cm³).
+    /// </summary>
+    private static FuelType MapGasToPetrolExciseFuelType(FuelType fuelType) =>
+        fuelType switch
+        {
+            FuelType.Gas or FuelType.GasPetrol => FuelType.Petrol,
+            _ => fuelType
+        };
+
+    private int GetExciseAgeCoefficient(int manufactureYear)
+    {
+        int age = DateTime.UtcNow.Year - manufactureYear;
 
         if (age < 1) age = 1;
         if (age > _settings.MaxExciseAge) age = _settings.MaxExciseAge;
 
+        return age;
+    }
+
+    private decimal CalculateIceExcise(FuelType fuelType, int capacity, int age)
+    {
         decimal volumeCoeff = capacity / 1000m;
 
         return fuelType switch
         {
-            // PETROL: Check against PetrolVolumeThreshold (3000)
             FuelType.Petrol when capacity <= _settings.PetrolVolumeThreshold
                 => _settings.PetrolRateSmall * volumeCoeff * age,
 
             FuelType.Petrol
                 => _settings.PetrolRateLarge * volumeCoeff * age,
 
-            // DIESEL: Check against DieselVolumeThreshold (3500)
             FuelType.Diesel when capacity <= _settings.DieselVolumeThreshold
                 => _settings.DieselRateSmall * volumeCoeff * age,
 
             FuelType.Diesel
                 => _settings.DieselRateLarge * volumeCoeff * age,
 
-            // OTHER TYPES
-            FuelType.Electric => _settings.ElectricRate * capacity,
-            FuelType.Hybrid => _settings.HybridRate,
-
             _ => 0
         };
     }
 
     /// <summary>
-    /// Helper method to calculate Pension Fund fee based on UAH value thresholds.
+    /// Pension fund fee at first registration: 3% / 4% / 5% by value in UAH (subsistence minimum tiers).
     /// </summary>
     private decimal CalculatePensionFund(decimal valEur, decimal rate)
     {
         decimal valUah = valEur * rate;
-        decimal percent;
+        decimal tier1 = _settings.SubsistenceMinimum * _settings.PensionTier1Multiplier;
+        decimal tier2 = _settings.SubsistenceMinimum * _settings.PensionTier2Multiplier;
 
-        if (valUah <= _settings.PensionThresholdTier1)
-            percent = _settings.PensionRateLow;
-        else if (valUah <= _settings.PensionThresholdTier2)
-            percent = _settings.PensionRateMedium;
-        else
-            percent = _settings.PensionRateHigh;
+        decimal percent = valUah <= tier1
+            ? _settings.PensionRateLow
+            : valUah <= tier2
+                ? _settings.PensionRateMedium
+                : _settings.PensionRateHigh;
 
-        // Convert fee back to EUR
         return (valUah * percent) / rate;
     }
 }
