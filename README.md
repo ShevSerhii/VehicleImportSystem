@@ -188,6 +188,44 @@ VehicleImportSystem/
 | GET | `/api/market/average-price` | Average market price from Auto.ria |
 | GET | `/api/currency/rates` | Current EUR/USD rates |
 
+## Testing & Quality
+
+Detailed testing documentation is available in:
+
+- `src/TESTING_REPORT.md` (diploma-ready report with methodology, scenarios, and interpretation)
+
+### Test Suite Summary
+
+- Test project: `src/VehicleImportSystem.Tests`
+- Framework: `xUnit` + `FluentAssertions` + `Moq`
+- Additional tools: `Microsoft.AspNetCore.TestHost`, `coverlet.collector`
+- Current result: **51/51 tests passed**
+
+### Coverage (business scope)
+
+Coverage is measured with:
+
+```bash
+dotnet test "VehicleImportSystem.sln" --collect:"XPlat Code Coverage" --settings "src/coverage.runsettings"
+```
+
+Latest measured values (business scope: API + Application + Infrastructure services):
+
+- **Line coverage:** **93.12%** (`718/771`)
+- **Branch coverage:** **73.13%** (`98/134`)
+- `VehicleImportSystem.API`: 88.46% line
+- `VehicleImportSystem.Application`: 98.98% line
+- `VehicleImportSystem.Infrastructure`: 92.32% line
+
+### Generate HTML coverage report
+
+```bash
+dotnet tool install -g dotnet-reportgenerator-globaltool
+reportgenerator -reports:"src/TestResults/*/coverage.cobertura.xml" -targetdir:"src/CoverageReport" -reporttypes:"Html;HtmlSummary"
+```
+
+Open `src/CoverageReport/index.html` in a browser.
+
 ## License
 
 Academic / diploma project — adjust licensing as required by your institution.
