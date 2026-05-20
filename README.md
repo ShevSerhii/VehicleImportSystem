@@ -226,24 +226,6 @@ reportgenerator -reports:"src/TestResults/*/coverage.cobertura.xml" -targetdir:"
 
 Open `src/CoverageReport/index.html` in a browser.
 
-## Diploma Defense Readiness
-
-Current project status is suitable for diploma defense:
-
-- Clean Architecture implementation is complete and consistent.
-- Core domain scenarios (calculation, history, currency/market integrations) are implemented.
-- API is documented (Swagger in Development) and runnable locally.
-- Automated tests cover critical business logic and error handling.
-- High business-scope coverage is achieved and reproducible.
-- Supporting report artifacts are present (`README.md`, `src/TESTING_REPORT.md`).
-
-Recommended final pre-defense checklist:
-
-1. Run full tests and regenerate coverage report on the final commit.
-2. Verify API startup with a real SQL Server connection string.
-3. Verify Angular frontend works end-to-end with the API (`http://localhost:4200`).
-4. Prepare screenshots from Swagger, UI flows, and HTML coverage summary.
-
 ## License
 
 Academic / diploma project — adjust licensing as required by your institution.
